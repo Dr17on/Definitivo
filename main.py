@@ -41,9 +41,9 @@ def load_config():
     }
 
 config = load_config()
-TOKEN = config["token"]
-ADMIN_IDS = config["admin_ids"]
-REQUIRED_CHANNELS = config["channels"]
+TOKEN = config["8413502528:AAGQxu5jQicp4eEXcjQ5N_C8sbEIVVKuzhY"]
+ADMIN_IDS = config["6757087193"]
+REQUIRED_CHANNELS = config["-1002344241870,-1002520450796,-1002333482353"]
 
 # Información de depósitos
 DEPOSIT_INFO = """
