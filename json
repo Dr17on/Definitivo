@@ -1,0 +1,17 @@
+{
+  "token": "8399620837:AAHtlB4mbWeAs0APLQnqG8ABQ0OX3_0now8",
+  "admin_ids": [6757087193],
+  "min_deposit": 1,
+  "min_withdrawal": 10,
+  "required_bets": 5,
+  "deposit_addresses": {
+    "usdt": "0x7a227a8915fccfab81d03dd3be44f14128294567",
+    "ton": "UQBvywnihfCNxZJMKYAhmWRRQ-fwGvDJc460wU20PejIMCgZ",
+    "mitransfer": "51602199"
+  },
+  "withdrawal_fees": {
+    "usdt": 0.05,
+    "ton": 0.03,
+    "mitransfer": 0.02
+  }
+}
