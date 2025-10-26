@@ -1,0 +1,39 @@
+{
+  "users": {},
+  "events": {
+    "1": {
+      "team1": "Real Madrid",
+      "team2": "Barcelona",
+      "league": "La Liga",
+      "date": "2024-12-15 20:00",
+      "odds": {
+        "team1": 1.85,
+        "draw": 3.20,
+        "team2": 4.00
+      },
+      "status": "active",
+      "created_by": 123456789,
+      "created_at": "2024-01-01T12:00:00"
+    },
+    "2": {
+      "team1": "Bayern Munich",
+      "team2": "Borussia Dortmund",
+      "league": "Bundesliga",
+      "date": "2024-12-16 18:30",
+      "odds": {
+        "team1": 1.70,
+        "draw": 3.50,
+        "team2": 4.50
+      },
+      "status": "active",
+      "created_by": 123456789,
+      "created_at": "2024-01-01T12:30:00"
+    }
+  },
+  "bets": {},
+  "deposits": {},
+  "withdrawals": {},
+  "next_event_id": 3,
+  "next_bet_id": 1,
+  "next_deposit_id": 1
+}
