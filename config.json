@@ -1,0 +1,19 @@
+{
+  "token": "8413502528:AAGQxu5jQicp4eEXcjQ5N_C8sbEIVVKuzhY",
+  "admin_ids": [6757087193],
+  "min_deposit": 50,
+  "min_withdrawal": 1000,
+  "required_bets": 5,
+  "channels": {
+    "main": "@canal_principal",
+    "transactions": "@canal_transacciones",
+    "bets": "@canal_apuestas"
+  },
+  "deposit_addresses": {
+    "mitransfer": "51602199"
+  },
+  "withdrawal_fees": {
+    "bank": 0.02,
+    "mitransfer": 0.0
+  }
+}
