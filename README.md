@@ -1,52 +1,48 @@
-# 🤖 Bot de Apuestas Deportivas para Telegram
+# ❌️Drks Bets❌️ - Bot de Apuestas Deportivas Cuba
 
-Bot completo de apuestas deportivas con sistema de depósitos, retiros y panel de administración.
+Bot completo de apuestas deportivas optimizado para Cuba con sistema de depósitos MiTransfer, retiros bancarios y panel de administración.
 
-## 🚀 Características
+## 🚀 Características Actualizadas
 
-- Sistema completo de apuestas deportivas
-- Múltiples métodos de depósito y retiro
-- Panel de administración
-- Verificación de transacciones
-- Persistencia de datos en JSON
-- Optimizado para Replit
+- **Sistema en Tiempo Real**: Eventos deportivos en vivo
+- **Métodos Cubanos**: Depósitos por MiTransfer, retiros bancarios
+- **Canales de Notificación**: Transacciones y apuestas en canales separados
+- **Verificación de Usuarios**: Requiere unirse a 3 canales oficiales
+- **Términos y Condiciones**: Política de privacidad completa
+- **Panel Admin Avanzado**: Mensajes globales y gestión completa
+- **Moneda CUP**: Adaptado para Cuba
 
-## 📋 Requisitos
+## ⚙️ Configuración en Replit
 
-- Python 3.8+
-- Token de bot de Telegram (@BotFather)
-- ID de Telegram para administrador
+1. **Importa el repositorio** a Replit
+2. **Configura Secrets** (Variables de entorno):
+   - `TELEGRAM_BOT_TOKEN`: Token de @BotFather
+   - `ADMIN_IDS`: Tu ID de Telegram (ej: 123456789)
+   - `MAIN_CHANNEL`: Canal principal
+   - `TRANSACTIONS_CHANNEL`: Canal para transacciones
+   - `BETS_CHANNEL`: Canal para apuestas
 
-## ⚙️ Configuración Rápida en Replit
+3. **Ejecuta el bot** y configúralo según tu necesidades
 
-1. **Importa este repositorio:**
-   - Ve a [replit.com](https://replit.com)
-   - Crea nuevo repl → "Import from GitHub"
-   - URL: `https://github.com/tuusuario/bot-apuestas-deportivas`
+## 📋 Requisitos de Usuario
 
-2. **Configura las variables de entorno:**
-   - En Replit, ve a "Secrets" (candado)
-   - Agrega:
-     - `TELEGRAM_BOT_TOKEN`: Tu token de @BotFather
-     - `ADMIN_IDS`: Tu ID de Telegram (ej: 123456789)
+- Unirse a 3 canales oficiales
+- Aceptar términos y condiciones  
+- Depósito mínimo: 50 CUP
+- Retiro mínimo: 1,000 CUP
+- 5 apuestas válidas para retirar
 
-3. **Ejecuta el bot:**
-   - Haz clic en "Run"
-   - El bot estará activo y funcionando
+## 🏦 Métodos de Pago
 
-## 🛠 Configuración Manual
+### Depósitos:
+- **Bolsa MiTransfer**: 51602199
+- Enviar captura del comprobante
 
-```bash
-# Clonar repositorio
-git clone https://github.com/tuusuario/bot-apuestas-deportivas
-cd bot-apuestas-deportivas
+### Retiros:
+- **Transferencia Bancaria**: 2% de comisión
+- **Bolsa MiTransfer**: Sin comisión
 
-# Instalar dependencias
-pip install -r requirements.txt
+## 🛠 Soporte
 
-# Configurar variables de entorno
-export TELEGRAM_BOT_TOKEN="tu_token"
-export ADMIN_IDS="123456789"
-
-# Ejecutar
-python main.py
+**Correo**: darksbets@gmail.com  
+**Soporte**: 24/7
