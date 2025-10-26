@@ -1,0 +1,30 @@
+# Archivos de entorno
+.env
+*.env
+
+# Archivos de configuración local
+config_local.json
+
+# Logs
+*.log
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema
+.DS_Store
+Thumbs.db
