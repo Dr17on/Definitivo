@@ -3,7 +3,7 @@ import logging
 import json
 import asyncio
 from datetime import datetime
-from flask import Flask, request
+from flask import Flask
 from threading import Thread
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, ConversationHandler, MessageHandler, filters
@@ -32,18 +32,28 @@ def load_config():
         "admin_ids": [int(x.strip()) for x in os.environ.get('ADMIN_IDS', '123456789').split(',')],
         "min_deposit": 50,
         "min_withdrawal": 1000,
-        "required_bets": 5,
-        "channels": {
-            "main": os.environ.get('MAIN_CHANNEL', '@canal_principal'),
-            "transactions": os.environ.get('TRANSACTIONS_CHANNEL', '@canal_transacciones'),
-            "bets": os.environ.get('BETS_CHANNEL', '@canal_apuestas')
-        }
+        "required_bets": 5
     }
 
 config = load_config()
 TOKEN = config["8413502528:AAGQxu5jQicp4eEXcjQ5N_C8sbEIVVKuzhY"]
 ADMIN_IDS = config["6757087193"]
-REQUIRED_CHANNELS = config["-1002344241870,-1002520450796,-1002333482353"]
+
+# Información de canales (opcionales)
+CHANNELS_INFO = {
+    "main": {
+        "name": "❌️Drks Bets❌️",
+        "link": "https://t.me/+sKoCBrdA4KwyYmIx"
+    },
+    "transactions": {
+        "name": "💳Depósitos y Retiros", 
+        "link": "https://t.me/+I45ugeNK7lk1Zjlh"
+    },
+    "bets": {
+        "name": "📊Apuestas Creadas",
+        "link": "https://t.me/+xbixQ7wLCQ04NjYx"
+    }
+}
 
 # Información de depósitos
 DEPOSIT_INFO = """
@@ -63,7 +73,7 @@ WITHDRAWAL_FEES = {
     'mitransfer': 0.0  # 0% para MiTransfer
 }
 
-# Política de privacidad
+# Política de privacidad actualizada
 PRIVACY_POLICY = """
 📄 *POLÍTICA DE PRIVACIDAD Y TÉRMINOS DE USO - Drks Bets*
 
@@ -73,7 +83,6 @@ Al usar ❌️Drks Bets❌️, aceptas cumplir con estos términos y condiciones
 2. *ELEGIBILIDAD*
 - Debes ser mayor de 18 años
 - Debes residir en Cuba
-- Debes unirte a nuestros canales oficiales
 
 3. *DEPÓSITOS Y RETIROS*
 - Depósito mínimo: 50 CUP
@@ -102,7 +111,13 @@ Drks Bets no se responsabiliza por:
 - Fallos técnicos momentáneos
 - Decisiones de los usuarios
 
-8. *CONTACTO*
+8. *CANALES OFICIALES*
+Te invitamos a unirte a nuestros canales oficiales para:
+- Noticias y actualizaciones
+- Estado de transacciones
+- Apuestas creadas por usuarios
+
+9. *CONTACTO*
 Correo: darksbets@gmail.com
 Soporte 24/7
 
@@ -216,35 +231,28 @@ data = load_data()
 def is_admin(user_id):
     return user_id in ADMIN_IDS
 
-async def check_user_channels(user_id, context):
-    """Verifica si el usuario está en los canales requeridos"""
-    missing_channels = []
+async def show_channels(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Muestra los canales oficiales"""
+    channels_text = "\n".join([
+        f"• [{channel_info['name']}]({channel_info['link']})"
+        for channel_info in CHANNELS_INFO.values()
+    ])
     
-    for channel_type, channel_id in REQUIRED_CHANNELS.items():
-        try:
-            member = await context.bot.get_chat_member(chat_id=channel_id, user_id=user_id)
-            if member.status not in ['member', 'administrator', 'creator']:
-                missing_channels.append(channel_id)
-        except Exception as e:
-            logger.error(f"Error verificando canal {channel_id}: {e}")
-            missing_channels.append(channel_id)
-    
-    return missing_channels
+    await update.message.reply_text(
+        f"📢 *CANALES OFICIALES - ❌️Drks Bets❌️*\n\n"
+        f"Te invitamos a unirte a nuestros canales oficiales:\n\n"
+        f"{channels_text}\n\n"
+        f"✨ *Beneficios:*\n"
+        f"• Noticias y actualizaciones\n"
+        f"• Estado de tus transacciones\n"
+        f"• Apuestas creadas por usuarios\n"
+        f"• Soporte y ayuda inmediata",
+        parse_mode='Markdown',
+        disable_web_page_preview=True
+    )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    
-    # Verificar canales
-    missing_channels = await check_user_channels(user_id, context)
-    if missing_channels:
-        channels_text = "\n".join([f"• {channel}" for channel in missing_channels])
-        await update.message.reply_text(
-            f"❌ *Para usar ❌️Drks Bets❌️ debes unirte a los siguientes canales:*\n\n"
-            f"{channels_text}\n\n"
-            f"Una vez te hayas unido, usa /start nuevamente.",
-            parse_mode='Markdown'
-        )
-        return
     
     # Verificar términos aceptados
     if str(user_id) not in data['users'] or not data['users'][str(user_id)].get('terms_accepted', False):
@@ -287,7 +295,8 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("💸 Retirar", callback_data='withdraw')],
         [InlineKeyboardButton("🏆 Eventos en Tiempo Real", callback_data='live_events')],
         [InlineKeyboardButton("📊 Mis Estadísticas", callback_data='stats')],
-        [InlineKeyboardButton("🔧 Configurar Retiro", callback_data='set_withdrawal')]
+        [InlineKeyboardButton("🔧 Configurar Retiro", callback_data='set_withdrawal')],
+        [InlineKeyboardButton("📢 Nuestros Canales", callback_data='our_channels')]
     ]
     
     if is_admin(update.effective_user.id):
@@ -367,7 +376,30 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data = data_dict['users'].get(str(user_id), {})
     data_key = query.data
     
-    if data_key == 'deposit':
+    if data_key == 'our_channels':
+        channels_text = "\n".join([
+            f"• [{channel_info['name']}]({channel_info['link']})"
+            for channel_info in CHANNELS_INFO.values()
+        ])
+        
+        await query.edit_message_text(
+            f"📢 *CANALES OFICIALES - ❌️Drks Bets❌️*\n\n"
+            f"Te invitamos a unirte a nuestros canales oficiales:\n\n"
+            f"{channels_text}\n\n"
+            f"✨ *Beneficios:*\n"
+            f"• Noticias y actualizaciones\n"
+            f"• Estado de tus transacciones\n"
+            f"• Apuestas creadas por usuarios\n"
+            f"• Soporte y ayuda inmediata",
+            parse_mode='Markdown',
+            disable_web_page_preview=True,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🏠 Inicio", callback_data='start')]
+            ])
+        )
+        return
+    
+    elif data_key == 'deposit':
         await query.edit_message_text(
             DEPOSIT_INFO,
             parse_mode='Markdown',
@@ -690,23 +722,8 @@ async def procesar_retiro(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
         save_data(data)
         
-        # Enviar notificación al canal de transacciones
+        # Enviar notificación al canal de transacciones (si está configurado)
         method_name = "Transferencia Bancaria" if method == 'bank' else "MiTransfer"
-        try:
-            await context.bot.send_message(
-                chat_id=REQUIRED_CHANNELS['transactions'],
-                text=f"💸 *NUEVA SOLICITUD DE RETIRO*\n\n"
-                     f"👤 Usuario: @{user_data.get('username', 'N/A')}\n"
-                     f"💰 Monto: ${amount:.2f} CUP\n"
-                     f"📉 Comisión: ${amount*fee:.2f} CUP\n"
-                     f"💳 Neto: ${net_amount:.2f} CUP\n"
-                     f"🏦 Método: {method_name}\n"
-                     f"📍 Destino: `{user_data['withdrawal_addresses'][method]}`\n"
-                     f"📋 ID: #{withdrawal_id}",
-                parse_mode='Markdown'
-            )
-        except Exception as e:
-            logger.error(f"Error enviando notificación de retiro: {e}")
         
         await update.message.reply_text(
             f"✅ *Solicitud de retiro procesada*\n\n"
@@ -770,23 +787,6 @@ async def procesar_monto_apuesta(update: Update, context: ContextTypes.DEFAULT_T
         
         save_data(data)
         
-        # Enviar notificación al canal de apuestas
-        try:
-            await context.bot.send_message(
-                chat_id=REQUIRED_CHANNELS['bets'],
-                text=f"🎯 *NUEVA APUSTA REGISTRADA*\n\n"
-                     f"👤 Usuario: @{user_data.get('username', 'N/A')}\n"
-                     f"🏈 Evento: {event['team1']} vs {event['team2']}\n"
-                     f"🎯 Selección: {selection_name}\n"
-                     f"💰 Monto: ${amount:.2f} CUP\n"
-                     f"📈 Cuotas: {odds:.2f}\n"
-                     f"🏆 Ganancia potencial: ${amount * odds:.2f} CUP\n"
-                     f"📋 ID: #{bet_id}",
-                parse_mode='Markdown'
-            )
-        except Exception as e:
-            logger.error(f"Error enviando notificación de apuesta: {e}")
-        
         await update.message.reply_text(
             f"✅ *Apuesta Confirmada*\n\n"
             f"📋 ID: #{bet_id}\n"
@@ -827,21 +827,6 @@ async def verificar_deposito(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 data['users'][user_id]['pending_deposits'] = []
             data['users'][user_id]['pending_deposits'].append(deposit_data)
             save_data(data)
-        
-        # Enviar notificación al canal de transacciones
-        try:
-            await context.bot.send_photo(
-                chat_id=REQUIRED_CHANNELS['transactions'],
-                photo=file_id,
-                caption=f"📥 *NUEVO DEPÓSITO PENDIENTE*\n\n"
-                       f"👤 Usuario: @{data['users'][user_id].get('username', 'N/A')}\n"
-                       f"🏦 Método: MiTransfer\n"
-                       f"⏰ Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-                       f"📋 User ID: {user_id}",
-                parse_mode='Markdown'
-            )
-        except Exception as e:
-            logger.error(f"Error enviando notificación de depósito: {e}")
         
         await update.message.reply_text(
             f"✅ *Comprobante recibido correctamente*\n\n"
@@ -920,6 +905,9 @@ def main():
     # Manejar errores
     application.add_error_handler(error_handler)
     
+    # Comando para mostrar canales
+    application.add_handler(CommandHandler("canales", show_channels))
+    
     # Conversación para términos
     terms_conv = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
@@ -987,7 +975,6 @@ def main():
     print("🤖 ❌️Drks Bets❌️ - Bot de Apuestas Deportivas iniciado")
     print(f"👑 Admins configurados: {ADMIN_IDS}")
     print(f"📊 Usuarios: {len(data['users'])} | Eventos: {len(data['events'])}")
-    print(f"📺 Canales: {REQUIRED_CHANNELS}")
     print("🌐 Servidor web: http://0.0.0.0:8080")
     print("✅ Bot listo para recibir mensajes...")
     
