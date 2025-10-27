@@ -16,7 +16,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Estados para conversaciones
-SET_WITHDRAWAL, CONFIRM_DEPOSIT, BET_AMOUNT, BET_SELECTION, ADMIN_ACTION, DEPOSIT_VERIFICATION, BROADCAST_MESSAGE, ACCEPT_TERMS = range(8)
+SET_WITHDRAWAL, CONFIRM_DEPOSIT, BET_AMOUNT, BET_SELECTION, ADMIN_ACTION, DEPOSIT_VERIFICATION, BROADCAST_MESSAGE = range(7)
 
 # Rutas para Replit
 DATA_FILE = "betting_data.json"
@@ -73,9 +73,9 @@ WITHDRAWAL_FEES = {
     'mitransfer': 0.0  # 0% para MiTransfer
 }
 
-# Política de privacidad actualizada
-PRIVACY_POLICY = """
-📄 *POLÍTICA DE PRIVACIDAD Y TÉRMINOS DE USO - Drks Bets*
+# Términos y condiciones actualizados
+TERMS_AND_CONDITIONS = """
+📄 *TÉRMINOS Y CONDICIONES DE USO - Drks Bets*
 
 1. *ACEPTACIÓN DE TÉRMINOS*
 Al usar ❌️Drks Bets❌️, aceptas cumplir con estos términos y condiciones.
@@ -121,7 +121,7 @@ Te invitamos a unirte a nuestros canales oficiales para:
 Correo: darksbets@gmail.com
 Soporte 24/7
 
-*Al aceptar, confirmas que comprendes y aceptas estos términos.*
+*Al usar nuestros servicios, confirmas que comprendes y aceptas estos términos.*
 """
 
 # Servidor web para mantener activo el Replit
@@ -231,6 +231,16 @@ data = load_data()
 def is_admin(user_id):
     return user_id in ADMIN_IDS
 
+async def show_terms(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Muestra los términos y condiciones"""
+    await update.message.reply_text(
+        TERMS_AND_CONDITIONS,
+        parse_mode='Markdown',
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("🏠 Volver al Inicio", callback_data='start')]
+        ])
+    )
+
 async def show_channels(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Muestra los canales oficiales"""
     channels_text = "\n".join([
@@ -254,26 +264,7 @@ async def show_channels(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
-    # Verificar términos aceptados
-    if str(user_id) not in data['users'] or not data['users'][str(user_id)].get('terms_accepted', False):
-        keyboard = [
-            [InlineKeyboardButton("✅ Aceptar Términos", callback_data='accept_terms')],
-            [InlineKeyboardButton("❌ Rechazar", callback_data='reject_terms')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await update.message.reply_text(
-            "👋 *Bienvenido Usuario a ❌️Drks Bets ❌️*\n\n"
-            "Ofrecemos servicio de apuestas de fútbol en Cuba🇨🇺, todas las operaciones las hacemos manuales "
-            "para que no hallan equivocaciones ni pérdidas, ofrecemos servicio de atención al cliente 24/7 "
-            "a través de nuestro correo darksbets@gmail.com\n\n"
-            "*Para continuar, debes aceptar nuestra política de privacidad y términos de uso:*",
-            parse_mode='Markdown',
-            reply_markup=reply_markup
-        )
-        return ACCEPT_TERMS
-    
-    # Usuario verificado y con términos aceptados
+    # Registrar usuario si no existe
     if str(user_id) not in data['users']:
         data['users'][str(user_id)] = {
             'balance': 0.0,
@@ -282,8 +273,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             'withdrawal_addresses': {},
             'pending_deposits': [],
             'username': update.effective_user.username or f"user_{user_id}",
-            'terms_accepted': True,
-            'joined_date': datetime.now().isoformat()
+            'joined_date': datetime.now().isoformat(),
+            'first_name': update.effective_user.first_name or '',
+            'last_name': update.effective_user.last_name or ''
         }
         save_data(data)
     
@@ -296,7 +288,8 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("🏆 Eventos en Tiempo Real", callback_data='live_events')],
         [InlineKeyboardButton("📊 Mis Estadísticas", callback_data='stats')],
         [InlineKeyboardButton("🔧 Configurar Retiro", callback_data='set_withdrawal')],
-        [InlineKeyboardButton("📢 Nuestros Canales", callback_data='our_channels')]
+        [InlineKeyboardButton("📢 Nuestros Canales", callback_data='our_channels')],
+        [InlineKeyboardButton("📄 Términos y Condiciones", callback_data='show_terms')]
     ]
     
     if is_admin(update.effective_user.id):
@@ -304,68 +297,31 @@ async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     reply_markup = InlineKeyboardMarkup(keyboard)
     
+    # Mensaje de bienvenida mejorado
+    welcome_message = (
+        "👋 *Bienvenido a ❌️Drks Bets ❌️*\n\n"
+        "🏆 *Servicio de apuestas de fútbol en Cuba* 🇨🇺\n\n"
+        "✨ *Características:*\n"
+        "• Operaciones manuales para evitar errores\n"
+        "• Atención al cliente 24/7\n"
+        "• Eventos en tiempo real\n"
+        "• Múltiples métodos de retiro\n\n"
+        "📧 *Soporte:* darksbets@gmail.com\n\n"
+        "Selecciona una opción del menú:"
+    )
+    
     if update.callback_query:
         await update.callback_query.edit_message_text(
-            "🏟️ *❌️Drks Bets❌️ - Menú Principal* 🏆\n\n"
-            "Selecciona una opción:",
+            welcome_message,
             reply_markup=reply_markup,
             parse_mode='Markdown'
         )
     else:
         await update.message.reply_text(
-            "🏟️ *❌️Drks Bets❌️ - Menú Principal* 🏆\n\n"
-            "Selecciona una opción:",
+            welcome_message,
             reply_markup=reply_markup,
             parse_mode='Markdown'
         )
-
-async def handle_terms(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    
-    user_id = update.effective_user.id
-    
-    if query.data == 'accept_terms':
-        # Mostrar política completa
-        await query.edit_message_text(
-            PRIVACY_POLICY,
-            parse_mode='Markdown',
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("✅ ACEPTO LOS TÉRMINOS", callback_data='confirm_terms')],
-                [InlineKeyboardButton("❌ RECHAZAR", callback_data='reject_terms')]
-            ])
-        )
-    elif query.data == 'confirm_terms':
-        # Guardar aceptación
-        if str(user_id) not in data['users']:
-            data['users'][str(user_id)] = {
-                'balance': 0.0,
-                'valid_bets': 0,
-                'total_bets': 0.0,
-                'withdrawal_addresses': {},
-                'pending_deposits': [],
-                'username': update.effective_user.username or f"user_{user_id}",
-                'terms_accepted': True,
-                'joined_date': datetime.now().isoformat()
-            }
-        else:
-            data['users'][str(user_id)]['terms_accepted'] = True
-        
-        save_data(data)
-        
-        await query.edit_message_text(
-            "✅ *Términos aceptados correctamente*\n\n"
-            "¡Bienvenido a ❌️Drks Bets❌️! Ya puedes comenzar a usar todos nuestros servicios.",
-            parse_mode='Markdown'
-        )
-        await show_main_menu(update, context)
-    else:
-        await query.edit_message_text(
-            "❌ *No puedes usar el bot sin aceptar los términos*\n\n"
-            "Si cambias de opinión, usa /start nuevamente."
-        )
-    
-    return ConversationHandler.END
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -376,7 +332,17 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data = data_dict['users'].get(str(user_id), {})
     data_key = query.data
     
-    if data_key == 'our_channels':
+    if data_key == 'show_terms':
+        await query.edit_message_text(
+            TERMS_AND_CONDITIONS,
+            parse_mode='Markdown',
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🏠 Volver al Inicio", callback_data='start')]
+            ])
+        )
+        return
+    
+    elif data_key == 'our_channels':
         channels_text = "\n".join([
             f"• [{channel_info['name']}]({channel_info['link']})"
             for channel_info in CHANNELS_INFO.values()
@@ -905,17 +871,9 @@ def main():
     # Manejar errores
     application.add_error_handler(error_handler)
     
-    # Comando para mostrar canales
+    # Comandos adicionales
+    application.add_handler(CommandHandler("terminos", show_terms))
     application.add_handler(CommandHandler("canales", show_channels))
-    
-    # Conversación para términos
-    terms_conv = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
-        states={
-            ACCEPT_TERMS: [CallbackQueryHandler(handle_terms, pattern='^(accept_terms|reject_terms|confirm_terms)$')]
-        },
-        fallbacks=[CommandHandler("cancel", cancelar)]
-    )
     
     # Conversación para retiros
     retiro_conv = ConversationHandler(
@@ -962,8 +920,8 @@ def main():
         fallbacks=[CommandHandler('cancel', cancelar)]
     )
     
-    # Agregar handlers
-    application.add_handler(terms_conv)
+    # Agregar handlers principales
+    application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(retiro_conv)
     application.add_handler(direccion_conv)
