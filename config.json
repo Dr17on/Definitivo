@@ -1,6 +1,6 @@
 {
   "token": "8413502528:AAGQxu5jQicp4eEXcjQ5N_C8sbEIVVKuzhY",
-  "admins_ids": [6757087193],
+  "admin_ids": [6757087193],
   "min_deposit": 50,
   "min_withdrawal": 1000,
   "required_bets": 5,
